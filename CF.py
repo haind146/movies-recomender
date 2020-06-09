@@ -6,7 +6,7 @@ from scipy import sparse
 class CF(object):
     """docstring for CF"""
 
-    def __init__(self, Y_data, Ybar, k=100, dist_func=cosine_similarity, uuCF=1):
+    def __init__(self, Y_data, Ybar, k=10000, dist_func=cosine_similarity, uuCF=1):
         self.uuCF = uuCF  # user-user (1) or item-item (0) CF
         self.Y_data = Y_data if uuCF else Y_data[:, [1, 0, 2]]
         self.Ybar = Ybar
