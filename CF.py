@@ -1,15 +1,12 @@
-import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy import sparse
-import time
-
 
 
 class CF(object):
     """docstring for CF"""
 
-    def __init__(self, Y_data, Ybar, k, dist_func=cosine_similarity, uuCF=1):
+    def __init__(self, Y_data, Ybar, k=100, dist_func=cosine_similarity, uuCF=1):
         self.uuCF = uuCF  # user-user (1) or item-item (0) CF
         self.Y_data = Y_data if uuCF else Y_data[:, [1, 0, 2]]
         self.Ybar = Ybar
@@ -17,7 +14,7 @@ class CF(object):
         self.dist_func = dist_func
         self.Ybar_data = None
         # number of users and items. Remember to add 1 since id starts from 0
-        if Y_data is not None:
+        if Ybar is None:
             self.n_users = int(np.max(self.Y_data[:, 0])) + 1
             self.n_items = int(np.max(self.Y_data[:, 1])) + 1
 
@@ -65,10 +62,6 @@ class CF(object):
                                        (self.Ybar_data[:, 1], self.Ybar_data[:, 0])), (self.n_items, self.n_users))
         self.Ybar = self.Ybar.tocsr()
 
-    # def nomarlize_Y2(self):
-    #     self.Ybar = sparse.coo_matrix([][],shape=(self.n_users, self.n_items))
-    #     print(self.Ybar.get_shape)
-
     def similarity(self):
         eps = 1e-6
         self.S = self.dist_func(self.Ybar.T, self.Ybar.T)
@@ -89,34 +82,35 @@ class CF(object):
         predict the rating of user u for item i (normalized)
         if you need the un
         """
-        find_user = time.time()
-        items, users = self.Ybar.nonzero()
+        # items, users = self.Ybar.nonzero()
         # Step 1: find all users who rated i
-        # ids = np.where(self.Y_data[:, 1] == i)[0].astype(np.int32)
-        users_rated_i = []
-        for idx in range(len(users)):
-            if items[idx] == i:
-                users_rated_i.append(users[idx])
-        users_rated_i = np.array(users_rated_i)
-        print('find user', time.time() - find_user)
+        try:
+            ids = np.where(self.Y_data[:, 1] == i)[0].astype(np.int32)
+        except:
+            return 0
+        # users_rated_i = []
+        # for idx in range(len(users)):
+        #     if items[idx] == i:
+        #         users_rated_i.append(users[idx])
+        # users_rated_i = np.array(users_rated_i)
         # Step 2:
-        # users_rated_i = (self.Y_data[ids, 0]).astype(np.int32)
+        users_rated_i = (self.Y_data[ids, 0]).astype(np.int32)
         # Step 3: find similarity btw the current user and others
         # who already rated i
         if len(users_rated_i) == 0:
             return 0
-        find_sim = time.time()
         sim = self.S[u, users_rated_i]
         #
         # # Step 4: find the k most similarity users
-        # a = np.argsort(sim)[-self.k:]
+        a = np.argsort(sim)[-self.k:]
         # # and the corresponding similarity levels
-        # nearest_s = sim[a]
+        nearest_s = sim[a]
+        # nearest_s = sim
         # # How did each of 'near' users rated item i
+        # r = self.Ybar[i, users_rated_i[a]]
         r = self.Ybar[i, users_rated_i]
-        print('find sim', time.time() - find_sim)
 
-        return (r * sim)[0] / (np.abs(sim).sum() + 1e-8)
+        return (r * nearest_s)[0] / (np.abs(nearest_s).sum() + 1e-8)
         # if normalized:
         #     # add a small number, for instance, 1e-8, to avoid dividing by 0
         #     return (r * nearest_s)[0] / (np.abs(nearest_s).sum() + 1e-8)
