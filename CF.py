@@ -6,7 +6,7 @@ from scipy import sparse
 class CF(object):
     """docstring for CF"""
 
-    def __init__(self, Y_data, Ybar, k=10000, dist_func=cosine_similarity, uuCF=1):
+    def __init__(self, Y_data, Ybar, k=500, dist_func=cosine_similarity, uuCF=1):
         self.uuCF = uuCF  # user-user (1) or item-item (0) CF
         self.Y_data = Y_data if uuCF else Y_data[:, [1, 0, 2]]
         self.Ybar = Ybar
@@ -107,8 +107,8 @@ class CF(object):
         nearest_s = sim[a]
         # nearest_s = sim
         # # How did each of 'near' users rated item i
-        # r = self.Ybar[i, users_rated_i[a]]
-        r = self.Ybar[i, users_rated_i]
+        r = self.Ybar[i, users_rated_i[a]]
+        # r = self.Ybar[i, users_rated_i]
 
         return (r * nearest_s)[0] / (np.abs(nearest_s).sum() + 1e-8)
         # if normalized:

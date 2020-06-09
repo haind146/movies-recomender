@@ -6,7 +6,7 @@ from CF import CF
 from clustering import bisecting_kmeans
 
 
-K_CLUSTERS = 10
+K_CLUSTERS = 1
 
 ratings_base = pd.read_csv('ml-1m/train.csv')
 ratings_test = pd.read_csv('ml-1m/test.csv')
